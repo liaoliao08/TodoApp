@@ -33,11 +33,11 @@ fun TodoListScreen(
     val statistics by viewModel.statistics.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    Scaffold(
-        topBar = {
+    Scaffold(//脚手架,负责为通用区域留出固定位置，比如顶部栏，悬浮按钮，底部栏，侧边栏，底部提示框
+        topBar = { //顶部导航栏
             TopAppBar(
                 title = { Text("我的待办") },
-                actions = {
+                actions = { //用于设置「导航栏右侧的操作按钮组」
                     IconButton(onClick = onNavigateToAdd) {
                         Icon(Icons.Default.Add, contentDescription = "添加")
                     }
@@ -100,13 +100,13 @@ fun TodoListScreen(
                             }
                         )
                     }
-                } else {
-                    LazyColumn(
+                } else { //加载完了，且列表不为空
+                    LazyColumn( //LazyColumn 是 Compose 中「垂直懒加载列表」，对应传统 Android 的 RecyclerView，核心优势是「只渲染屏幕可见的列表项」，即使列表有上万条数据也不卡顿
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(filteredTodos) { todo ->
+                        items(filteredTodos) { todo ->//相当于 Java 中的 for (Todo todo : filteredTodos) { ... }
                             TodoItem(
                                 todo = todo,
                                 onToggle = { viewModel.toggleTodoCompletion(todo) },
@@ -141,11 +141,11 @@ fun TodoItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
+            Row(//// 左侧：复选框 + 分类 + 标题 + 描述
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                Checkbox(
+                Checkbox(//复选框
                     checked = todo.isCompleted,
                     onCheckedChange = { onToggle() }
                 )
@@ -185,7 +185,7 @@ fun TodoItem(
                     )
                 }
             }
-            Row {
+            Row {//右侧，编辑按钮，和删除按钮
                 // 编辑按钮
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = "编辑")

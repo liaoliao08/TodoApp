@@ -40,7 +40,7 @@ class TodoViewModel(private val repository: TodoRepository) : ViewModel() {
             result = result.filter { it.category == category }
         }
 
-        // 按搜索词过滤
+        // 按搜索词过滤,在标题或者描述里面搜索
         if (query.isNotBlank()) {
             result = result.filter {
                 it.title.contains(query, ignoreCase = true) ||
