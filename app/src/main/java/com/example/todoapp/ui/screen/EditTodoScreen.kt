@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.todoapp.data.model.Todo
 import com.example.todoapp.data.model.TodoCategory
@@ -20,7 +21,7 @@ fun EditTodoScreen(
     viewModel: TodoViewModel,
     onNavigateBack: () -> Unit
 ) {
-    val currentTodo by viewModel.currentEditTodo.collectAsState()
+    val currentTodo by viewModel.currentEditTodo.collectAsStateWithLifecycle()
 
     // 如果当前没有待办要编辑，直接返回
     if (currentTodo == null) {

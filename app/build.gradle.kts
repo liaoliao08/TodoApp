@@ -45,18 +45,23 @@ android {
 }
 
 dependencies {
+    // ========== 新增核心依赖：解决 collectAsStateWithLifecycle 未识别 ==========
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7") // 和你的 viewModel-compose 版本保持一致
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7") // 可选，增强生命周期能力
+
     // Room 数据库
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
-// ViewModel
+
+    // ViewModel（原有）
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
-// Navigation
+    // Navigation（原有）
     implementation("androidx.navigation:navigation-compose:2.8.4")
 
-// 其他必要依赖（通常项目模板已包含）
+    // 其他必要依赖（原有）
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
 

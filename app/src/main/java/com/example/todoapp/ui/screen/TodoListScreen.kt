@@ -12,32 +12,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle // 新增：关键导入
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.todoapp.data.model.TodoCategory
-import com.example.todoapp.viewmodel.TodoViewModel
 import com.example.todoapp.data.model.Todo
-import com.example.todoapp.ui.component.SearchBar
+import com.example.todoapp.data.model.TodoCategory
 import com.example.todoapp.ui.component.CategoryRow
+import com.example.todoapp.ui.component.SearchBar
 import com.example.todoapp.ui.component.StatisticsCard
+import com.example.todoapp.viewmodel.TodoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(
     viewModel: TodoViewModel = viewModel(),
     onNavigateToAdd: () -> Unit,
-    onNavigateToEdit: () -> Unit  // 新增：跳转到编辑页面
+    onNavigateToEdit: () -> Unit
 ) {
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val filteredTodos by viewModel.filteredTodos.collectAsState()
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val statistics by viewModel.statistics.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    // 1. 修复：统一使用正确的 collectAsStateWithLifecycle（删除重复的 WithLifecycle）
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val filteredTodos by viewModel.filteredTodos.collectAsStateWithLifecycle()
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val statistics by viewModel.statistics.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-    Scaffold(//脚手架,负责为通用区域留出固定位置，比如顶部栏，悬浮按钮，底部栏，侧边栏，底部提示框
-        topBar = { //顶部导航栏
+    Scaffold(
+        topBar = {
             TopAppBar(
                 title = { Text("我的待办") },
-                actions = { //用于设置「导航栏右侧的操作按钮组」
+                actions = {
                     IconButton(onClick = onNavigateToAdd) {
                         Icon(Icons.Default.Add, contentDescription = "添加")
                     }
@@ -55,28 +57,24 @@ fun TodoListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 搜索栏
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { viewModel.updateSearchQuery(it) },
                 modifier = Modifier.padding(16.dp)
             )
 
-            // 分类选择行
             CategoryRow(
                 selectedCategory = selectedCategory,
                 onCategorySelected = { viewModel.selectCategory(it) },
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // 统计卡片
             StatisticsCard(
                 statistics = statistics,
-                selectedCategory = selectedCategory,  // 传入当前选中的分类
+                selectedCategory = selectedCategory,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // 待办列表
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -84,7 +82,7 @@ fun TodoListScreen(
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                } else if (filteredTodos.isEmpty()) {
+                } else if (filteredTodos.isEmpty()) { // 2. 修复：明确 List 类型的 isEmpty
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -100,13 +98,14 @@ fun TodoListScreen(
                             }
                         )
                     }
-                } else { //加载完了，且列表不为空
-                    LazyColumn( //LazyColumn 是 Compose 中「垂直懒加载列表」，对应传统 Android 的 RecyclerView，核心优势是「只渲染屏幕可见的列表项」，即使列表有上万条数据也不卡顿
+                } else {
+                    LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(filteredTodos) { todo ->//相当于 Java 中的 for (Todo todo : filteredTodos) { ... }
+                        // 3. 修复：items 遍历 Todo 列表，参数传递正确的 Todo 对象
+                        items(filteredTodos) { todo: Todo ->
                             TodoItem(
                                 todo = todo,
                                 onToggle = { viewModel.toggleTodoCompletion(todo) },
@@ -128,12 +127,10 @@ fun TodoListScreen(
 fun TodoItem(
     todo: Todo,
     onToggle: () -> Unit,
-    onEdit: () -> Unit,  // 新增：编辑回调
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -141,18 +138,15 @@ fun TodoItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(//// 左侧：复选框 + 分类 + 标题 + 描述
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                Checkbox(//复选框
+                Checkbox(
                     checked = todo.isCompleted,
                     onCheckedChange = { onToggle() }
                 )
-                Column(
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    // 显示分类标签
+                Column(modifier = Modifier.padding(start = 8.dp)) {
                     AssistChip(
                         onClick = {},
                         label = {
@@ -162,7 +156,7 @@ fun TodoItem(
                                     TodoCategory.LIFE -> "生活"
                                     TodoCategory.STUDY -> "学习"
                                     TodoCategory.OTHER -> "其他"
-                                    else -> "其他"  // ← 添加 else 分支
+                                    else -> "其他"
                                 },
                                 style = MaterialTheme.typography.labelSmall
                             )
@@ -185,12 +179,10 @@ fun TodoItem(
                     )
                 }
             }
-            Row {//右侧，编辑按钮，和删除按钮
-                // 编辑按钮
+            Row {
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = "编辑")
                 }
-                // 删除按钮
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = "删除")
                 }
