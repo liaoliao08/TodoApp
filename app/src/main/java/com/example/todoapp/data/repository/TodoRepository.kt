@@ -19,5 +19,12 @@ class TodoRepository(private val todoDao: TodoDao) {
         todoDao.deleteTodo(todo)
     }
 
-    suspend fun getTodoById(id: Int): Todo? = todoDao.getTodoById(id)
+    suspend fun getTodoById(id: String): Todo? = todoDao.getTodoById(id)
+
+
+    // 新增
+    suspend fun getUnsyncedTodos(): List<Todo> = todoDao.getUnsyncedTodos()
+
+    // 新增
+    suspend fun markAsSynced(ids: List<String>) = todoDao.markAsSynced(ids)
 }

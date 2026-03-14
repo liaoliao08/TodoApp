@@ -17,5 +17,13 @@ interface TodoDao {
     suspend fun deleteTodo(todo: Todo)
 
     @Query("SELECT * FROM todo_table WHERE id = :id")
-    suspend fun getTodoById(id: Int): Todo?
+    suspend fun getTodoById(id: String): Todo?
+
+    // 新增：查询未同步的数据
+    @Query("SELECT * FROM todo_table WHERE isSynced = 0")
+    suspend fun getUnsyncedTodos(): List<Todo>
+
+    // 新增：更新同步状态
+    @Query("UPDATE todo_table SET isSynced = 1 WHERE id IN (:ids)")
+    suspend fun markAsSynced(ids: List<String>)
 }

@@ -2,7 +2,7 @@ package com.example.todoapp.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-
+import java.util.UUID
 enum class TodoCategory {
     WORK,        // 工作
     LIFE,        // 生活
@@ -12,11 +12,15 @@ enum class TodoCategory {
 
 @Entity(tableName = "todo_table")
 data class Todo(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),  // ← 改成 String
     val title: String,
     val description: String,
-    val category: TodoCategory = TodoCategory.OTHER,  // 新增：分类
+    val category: TodoCategory = TodoCategory.OTHER,
     val isCompleted: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+
+    // 新增同步相关字段
+    val isSynced: Boolean = false,
+    val updatedAt: Long = System.currentTimeMillis()
 )

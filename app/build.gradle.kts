@@ -64,7 +64,11 @@ dependencies {
     // 其他必要依赖（原有）
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
-
+    // Retrofit 网络请求（加上这两行）
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // OkHttp 日志拦截器（可选，调试用）
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

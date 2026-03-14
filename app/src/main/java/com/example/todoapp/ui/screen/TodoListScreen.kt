@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle // 新增：关键导入
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.Check
 import com.example.todoapp.data.model.Todo
 import com.example.todoapp.data.model.TodoCategory
 import com.example.todoapp.ui.component.CategoryRow
@@ -28,18 +30,35 @@ fun TodoListScreen(
     onNavigateToAdd: () -> Unit,
     onNavigateToEdit: () -> Unit
 ) {
-    // 1. 修复：统一使用正确的 collectAsStateWithLifecycle（删除重复的 WithLifecycle）
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val filteredTodos by viewModel.filteredTodos.collectAsStateWithLifecycle()
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val statistics by viewModel.statistics.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val isSyncing by viewModel.isSyncing.collectAsState()
+    val syncError by viewModel.syncError.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("我的待办") },
                 actions = {
+                    IconButton(
+                        onClick = { viewModel.syncWithServer() },
+                        enabled = !isSyncing
+                    ) {
+                        if (isSyncing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Sync,
+                                contentDescription = "同步"
+                            )
+                        }
+                    }
                     IconButton(onClick = onNavigateToAdd) {
                         Icon(Icons.Default.Add, contentDescription = "添加")
                     }
@@ -57,6 +76,13 @@ fun TodoListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            if (syncError != null) {
+                Text(
+                    text = syncError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { viewModel.updateSearchQuery(it) },
@@ -163,15 +189,40 @@ fun TodoItem(
                         },
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = todo.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (todo.isCompleted)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            else
+                                MaterialTheme.colorScheme.onSurface
+                        )
 
-                    Text(
-                        text = todo.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (todo.isCompleted)
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        else
-                            MaterialTheme.colorScheme.onSurface
-                    )
+                        // 🔥 新增：同步状态图标
+                        if (!todo.isSynced) {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = "未同步",
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .padding(start = 4.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "已同步",
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .padding(start = 4.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
                     Text(
                         text = todo.description,
                         style = MaterialTheme.typography.bodyMedium,
